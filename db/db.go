@@ -1,21 +1,26 @@
 package db
 
 import (
-	"database/sql"
+	"log"
 
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"study.com/golang-web/models"
 )
 
-func Connect() *sql.DB {
+var (
+	DB  *gorm.DB
+	err error
+)
+
+func ConnectDataBase() {
 	// Connect to your postgres DB.
-	conn := "host=localhost port=5432 user=docker password=docker dbname=api-produto sslmode=disable"
+	stringDeConexao := "host=localhost port=5432 user=docker password=docker dbname=api-produto sslmode=disable"
 
-	db, err := sql.Open("postgres", conn)
-
+	DB, err = gorm.Open(postgres.Open(stringDeConexao))
 	if err != nil {
-		panic(err.Error())
+		log.Panic("Erro ao conectar com banco de dados")
 	}
-
-	return db
-
+	DB.AutoMigrate(&models.Product{}, &models.User{})
 }

@@ -4,18 +4,25 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"text/template"
 
+	"study.com/golang-web/db"
 	"study.com/golang-web/models"
 )
 
-var temp = template.Must(template.ParseGlob("templates/*.html"))
+func AboutHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "content/about.html", nil)
+}
+
+func IndexContent(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "content/index.html", nil)
+}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
-	allProdutcs := models.FindAllProducts()
+	var produtcs []models.Product
+	db.DB.Find(&produtcs)
 
-	temp.ExecuteTemplate(w, "Index", allProdutcs)
+	temp.ExecuteTemplate(w, "Index", produtcs)
 
 }
 
@@ -41,20 +48,24 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 			log.Println("Erro na conversão do quantidade:", err)
 		}
 
-		models.InsertProduct(name, description, priceConv, amountConv)
+		db.DB.Create(&models.Product{Name: name, Description: description, Price: priceConv, Amount: amountConv})
 	}
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/", codeRedirect)
 }
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	models.DeleteProduct(id)
-	http.Redirect(w, r, "/", 301)
+	db.DB.Delete(&models.Product{}, id)
+	http.Redirect(w, r, "/", codeRedirect)
 }
 
 func Edit(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	product := models.FindProductById(id)
+
+	var product models.Product
+
+	db.DB.First(&product, id)
+
 	temp.ExecuteTemplate(w, "Edit", product)
 }
 
@@ -76,7 +87,8 @@ func Update(w http.ResponseWriter, r *http.Request) {
 			log.Println("Erro na conversão do quantidade:", err)
 		}
 
-		models.UpdateProduct(id, name, description, priceConv, amountConv)
+		db.DB.Model(&models.Product{}).Where("id = ?", id).Updates(models.Product{Name: name, Description: description, Price: priceConv, Amount: amountConv})
+
 	}
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/", codeRedirect)
 }
