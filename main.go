@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"study.com/golang-web/config"
 	"study.com/golang-web/db"
 	"study.com/golang-web/routes"
 
@@ -13,6 +14,8 @@ import (
 func main() {
 
 	db.ConnectDataBase()
+
+	config.InitializeStore()
 
 	routes.UpAllRoutes()
 
